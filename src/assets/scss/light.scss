@@ -1,0 +1,47 @@
+// AppStack
+@import "app";
+
+.kilimo-title-1{
+    font-size: 3.2em;
+    line-height: 1.5em;
+    letter-spacing: -2.7px;
+    color: #4C413F;
+    font-weight: 400;
+    font-family: 'Poppins', sans-serif;
+
+    @media(max-width: 800px){
+        font-size: 2.3em;
+        line-height: 1.2em;
+    }
+}
+
+.kilimo-description{
+    font-size: 18px;
+    font-family: 'Poppins', sans-serif;
+
+    @media(max-width: 800px){
+        font-size: 0.8em;
+        padding: 10px !important;
+    }
+   
+}
+
+.step-title{
+    @media(max-width: 800px){
+        font-size: 1.1em;
+    }
+}
+.form-label{
+    font-size: 1.02rem;
+    color: #4C413F;
+}
+.form-control, .form-select{
+    border: 2px solid #b4c5d7;
+    .form-select{
+        width: 50%;
+
+        @media(max-width: 800px){
+            width: 100%;
+        }
+    }
+}
