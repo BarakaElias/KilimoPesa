@@ -1,4 +1,5 @@
 import { createSlice } from "@reduxjs/toolkit";
+import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
 
 export const surveySlice = createSlice({
   name: "survey",
@@ -27,7 +28,7 @@ export const surveySlice = createSlice({
     the_survey: {
       agricultural_fields: [],
     },
-    step: 2,
+    step: 1,
   },
   reducers: {
     setPersonalInformation: (state, payload) => {
@@ -52,6 +53,21 @@ export const surveySlice = createSlice({
   },
 });
 
+export const surveyApi = createApi({
+  reducerPath: "surveyApi",
+  baseQuery: fetchBaseQuery({
+    baseUrl: process.env.REACT_APP_API_URL,
+  }),
+  tagTypes: ["Surveys"],
+  endpoints: (builder) => ({
+    getAllSurveys: builder.query({
+      query: () => "surveys",
+      transformErrorResponse: (response, meta, arg) => response.status,
+      providesTags: ["Surveys"],
+    }),
+  }),
+});
+
 export const {
   increaseStep,
   decreaseStep,
@@ -60,4 +76,6 @@ export const {
   setPracticed,
   setTheSurvey,
 } = surveySlice.actions;
+
+export const { useGetAllSurveysQuery } = surveyApi;
 export default surveySlice.reducer;

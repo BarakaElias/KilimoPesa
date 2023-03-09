@@ -38,10 +38,7 @@ const SurveyQuestionsForm = ({ setCurrentState }) => {
               activities: Yup.array()
                 .of(
                   Yup.object().shape({
-                    activity: Yup.array().min(
-                      1,
-                      "Please select at least one activity"
-                    ),
+                    activity: Yup.string().required("Specify an activity"),
                     region: Yup.string().required(
                       "The region you practice this activity is required"
                     ),

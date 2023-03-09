@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useRef, useCallback } from "react";
 import { FieldArray, Field, ErrorMessage } from "formik";
 import { Form, Row, Col, Alert } from "react-bootstrap";
 import useAppSelector from "../../../../hooks/useAppSelector";
@@ -12,6 +12,7 @@ const PracticingQuestions = ({
   touched,
   errors,
 }) => {
+  const inputRef = useRef();
   const { t, i18n } = useTranslation();
   console.log("Values: ", values);
   const currentValues = useAppSelector(
@@ -171,7 +172,40 @@ const PracticingQuestions = ({
           </React.Fragment>
         );
       case "sub-activity":
-        let l = 0;
+        const checkedStatus = (activity, indexx) => {
+          console.log("Checking for: ", activity);
+          if (values.agricultural_fields[indexx]["activities"] === undefined) {
+            return false;
+          }
+          let isThere = false;
+          values.agricultural_fields[indexx]["activities"].map((at) => {
+            console.log(
+              `Comparing ${at.activity} against activity:${activity}`
+            );
+            if (at.activity === activity) {
+              isThere = true;
+            }
+          });
+          console.log("Value of includes(): ", isThere);
+          return isThere;
+        };
+        const handleActivityChange = (
+          isChecked,
+          activity,
+          value,
+          push,
+          remove
+        ) => {
+          if (isChecked) {
+            console.log("Adding");
+            push({ activity: activity });
+          } else {
+            remove({
+              activity: value,
+            });
+          }
+        };
+
         return (
           <Row>
             {values.agricultural_fields.map((field) => {
@@ -183,7 +217,6 @@ const PracticingQuestions = ({
                         return x.field === "Farming";
                       }
                     );
-                    var zFarming = 0;
 
                     return (
                       <React.Fragment key={field.field + "fragment"}>
@@ -203,13 +236,19 @@ const PracticingQuestions = ({
                                 console.log("K: ", msg[k]);
                                 console.log("typeof erro ", typeof msg[k]);
                                 if (k === "activities" && msg[k].length > 0) {
-                                  return msg[k].map((kk) => {
-                                    return Object.keys(kk).map((kkk) => {
-                                      return (
-                                        <p className="text-danger">{kk[kkk]}</p>
-                                      );
-                                    });
-                                  });
+                                  return typeof msg[k] === "string" ? (
+                                    <p className="text-danger">{msg[k]}</p>
+                                  ) : (
+                                    msg[k].map((kk) => {
+                                      return Object.keys(kk).map((kkk) => {
+                                        return (
+                                          <p className="text-danger">
+                                            {kk[kkk]}
+                                          </p>
+                                        );
+                                      });
+                                    })
+                                  );
                                 }
                                 return <p className="text-danger">{msg[k]}</p>;
                               });
@@ -282,81 +321,117 @@ const PracticingQuestions = ({
                           <h4 className="fw-bolder">
                             {t("What farming activities do you do")}? (Multiple)
                           </h4>
-                          {farmingActivities.map((activity) => (
-                            <Row>
-                              <Col md={5}>
-                                <Form.Group key={"formgroup" + activity}>
-                                  <Field
-                                    key={activity + "dd" + 12}
-                                    value={activity}
-                                    className="form-check-input"
-                                    type="checkbox"
-                                    name={`agricultural_fields[${indexOfFarming}]['activities'][${zFarming}].activity`}
-                                  />
-                                  <Form.Label>{t(activity)}</Form.Label>
-                                </Form.Group>
-                              </Col>
-                              {values.agricultural_fields[indexOfFarming][
-                                "activities"
-                              ] &&
+                          {farmingActivities.map((activity) => {
+                            var zFarming =
                               values.agricultural_fields[indexOfFarming][
                                 "activities"
-                              ][zFarming] &&
-                              values.agricultural_fields[indexOfFarming][
-                                "activities"
-                              ][zFarming].activity[0] ? (
-                                <Col>
-                                  <Row>
-                                    {values.agricultural_fields[indexOfFarming][
-                                      "activities"
-                                    ][zFarming].activity[0] === "Other" ? (
-                                      <Col md={12}>
+                              ] !== undefined
+                                ? values.agricultural_fields[indexOfFarming][
+                                    "activities"
+                                  ].length
+                                : 0;
+                            return (
+                              <Row>
+                                <Col md={5}>
+                                  <FieldArray
+                                    name={`agricultural_fields[${indexOfFarming}]['activities']`}
+                                  >
+                                    {({ insert, remove, push }) => (
+                                      <Form.Group key={"formgroup" + activity}>
+                                        <Field
+                                          key={activity + "dd" + 12}
+                                          value={activity}
+                                          checked={checkedStatus(
+                                            activity,
+                                            indexOfFarming
+                                          )}
+                                          className="form-check-input"
+                                          onChange={(e) => {
+                                            handleActivityChange(
+                                              e.target.checked,
+                                              activity,
+                                              e.target.value,
+                                              push,
+                                              remove
+                                            );
+                                          }}
+                                          type="checkbox"
+                                          // name={`agricultural_fields[${indexOfFarming}]['activities'][${zFarming}].activity`}
+                                        />
+                                        <Form.Label>{t(activity)}</Form.Label>
+                                      </Form.Group>
+                                    )}
+                                  </FieldArray>
+                                </Col>
+                                {values.agricultural_fields[indexOfFarming][
+                                  "activities"
+                                ] &&
+                                values.agricultural_fields[indexOfFarming][
+                                  "activities"
+                                ].find((a) => a.activity === activity) ? (
+                                  <Col>
+                                    <Row>
+                                      {values.agricultural_fields[
+                                        indexOfFarming
+                                      ]["activities"].find(
+                                        (a) => a.activity === "Other"
+                                      ) ? (
+                                        <Col md={12}>
+                                          <Form.Group as={Row}>
+                                            <Form.Label column md={2}>
+                                              {t("Specify")}:
+                                            </Form.Label>
+                                            <Col md={10}>
+                                              <Field
+                                                component={Form.Control}
+                                                name={`agricultural_fields[${indexOfFarming}]['activities'][${values.agricultural_fields[
+                                                  indexOfFarming
+                                                ]["activities"].findIndex(
+                                                  (a) => a.activity === activity
+                                                )}].act`}
+                                              />
+                                            </Col>
+                                          </Form.Group>
+                                        </Col>
+                                      ) : null}
+                                      <Col>
                                         <Form.Group as={Row}>
                                           <Form.Label column md={2}>
-                                            {t("Specify")}:
+                                            {t("Region")}:
                                           </Form.Label>
                                           <Col md={10}>
                                             <Field
-                                              name={`agricultural_fields[${indexOfFarming}]['activities'][${zFarming}].act`}
-                                              className="form-control"
-                                            />
+                                              as="select"
+                                              name={`agricultural_fields[${indexOfFarming}]['activities'][${values.agricultural_fields[
+                                                indexOfFarming
+                                              ]["activities"].findIndex(
+                                                (a) => a.activity === activity
+                                              )}].region`}
+                                              className="form-select"
+                                            >
+                                              <option></option>
+                                              {regions.map((region) => (
+                                                <option
+                                                  key={region}
+                                                  value={region}
+                                                >
+                                                  {region}
+                                                </option>
+                                              ))}
+                                            </Field>
                                           </Col>
                                         </Form.Group>
                                       </Col>
-                                    ) : null}
-                                    <Col>
-                                      <Form.Group as={Row}>
-                                        <Form.Label column md={2}>
-                                          {t("Region")}:
-                                        </Form.Label>
-                                        <Col md={10}>
-                                          <Field
-                                            as="select"
-                                            name={`agricultural_fields[${indexOfFarming}]['activities'][${zFarming}].region`}
-                                            className="form-select"
-                                          >
-                                            <option></option>
-                                            {regions.map((region) => (
-                                              <option
-                                                key={region}
-                                                value={region}
-                                              >
-                                                {region}
-                                              </option>
-                                            ))}
-                                          </Field>
-                                        </Col>
-                                      </Form.Group>
-                                    </Col>
-                                  </Row>
-                                </Col>
-                              ) : null}
-                              {console.log(
+                                    </Row>
+                                  </Col>
+                                ) : null}
+                                {/* {console.log(
                                 "Incrementing index of farming activities: ",
                                 (zFarming += 1)
-                              )}
-                            </Row>
-                          ))}
+                              )} */}
+                              </Row>
+                            );
+                          })}
                           <hr></hr>
                         </Col>
                       </React.Fragment>
@@ -370,7 +445,14 @@ const PracticingQuestions = ({
                         return x.field === "Livestock keeping";
                       }
                     );
-                    var zLivestock = 0;
+                    // var zLivestock =
+                    //   values.agricultural_fields[indexOfLiveStock][
+                    //     "activities"
+                    //   ] !== undefined
+                    //     ? values.agricultural_fields[indexOfLiveStock][
+                    //         "activities"
+                    //       ].length
+                    //     : 0;
 
                     return (
                       <React.Fragment>
@@ -390,13 +472,19 @@ const PracticingQuestions = ({
                             if (typeof msg === "object") {
                               return Object.keys(msg).map((k) => {
                                 if (k === "activities" && msg[k].length > 0) {
-                                  return msg[k].map((kk) => {
-                                    return Object.keys(kk).map((kkk) => {
-                                      return (
-                                        <p className="text-danger">{kk[kkk]}</p>
-                                      );
-                                    });
-                                  });
+                                  return typeof msg[k] === "string" ? (
+                                    <p className="text-danger">{msg[k]}</p>
+                                  ) : (
+                                    msg[k].map((kk) => {
+                                      return Object.keys(kk).map((kkk) => {
+                                        return (
+                                          <p className="text-danger">
+                                            {kk[kkk]}
+                                          </p>
+                                        );
+                                      });
+                                    })
+                                  );
                                 }
                                 return <p className="text-danger">{msg[k]}</p>;
                               });
@@ -466,32 +554,49 @@ const PracticingQuestions = ({
                           {livestockActivities.map((activity) => (
                             <Row>
                               <Col md={5}>
-                                <Form.Group>
-                                  <Field
-                                    key={activity + "dd" + 12}
-                                    value={activity}
-                                    className="form-check-input"
-                                    type="checkbox"
-                                    name={`agricultural_fields[${indexOfLiveStock}]['activities'][${zLivestock}].activity`}
-                                  />
-                                  <Form.Label>{t(activity)}</Form.Label>
-                                </Form.Group>
+                                <FieldArray
+                                  name={`agricultural_fields[${indexOfLiveStock}]['activities']`}
+                                >
+                                  {({ insert, remove, push }) => (
+                                    <Form.Group>
+                                      <Field
+                                        key={activity + "dd" + 12}
+                                        value={activity}
+                                        checked={checkedStatus(
+                                          activity,
+                                          indexOfLiveStock
+                                        )}
+                                        onChange={(e) => {
+                                          handleActivityChange(
+                                            e.target.checked,
+                                            activity,
+                                            e.target.value,
+                                            push,
+                                            remove
+                                          );
+                                        }}
+                                        className="form-check-input"
+                                        type="checkbox"
+                                        // name={`agricultural_fields[${indexOfLiveStock}]['activities'][${zLivestock}].activity`}
+                                      />
+                                      <Form.Label>{t(activity)}</Form.Label>
+                                    </Form.Group>
+                                  )}
+                                </FieldArray>
                               </Col>
                               {values.agricultural_fields[indexOfLiveStock][
                                 "activities"
                               ] &&
                               values.agricultural_fields[indexOfLiveStock][
                                 "activities"
-                              ][zLivestock] &&
-                              values.agricultural_fields[indexOfLiveStock][
-                                "activities"
-                              ][zLivestock].activity[0] ? (
+                              ].find((a) => a.activity === activity) ? (
                                 <Col>
                                   <Row>
                                     {values.agricultural_fields[
                                       indexOfLiveStock
-                                    ]["activities"][zLivestock].activity[0] ===
-                                    "Other" ? (
+                                    ]["activities"].find(
+                                      (a) => a.activity === "Other"
+                                    ) ? (
                                       <Col md={12}>
                                         <Form.Group as={Row}>
                                           <Form.Label column md={2}>
@@ -499,8 +604,12 @@ const PracticingQuestions = ({
                                           </Form.Label>
                                           <Col md={10}>
                                             <Field
-                                              name={`agricultural_fields[${indexOfLiveStock}]['activities'][${zLivestock}].act`}
-                                              className="form-control"
+                                              component={Form.Control}
+                                              name={`agricultural_fields[${indexOfLiveStock}]['activities'][${values.agricultural_fields[
+                                                indexOfLiveStock
+                                              ]["activities"].findIndex(
+                                                (a) => a.activity === "Other"
+                                              )}].act`}
                                             />
                                           </Col>
                                         </Form.Group>
@@ -514,7 +623,11 @@ const PracticingQuestions = ({
                                         <Col md={10}>
                                           <Field
                                             as="select"
-                                            name={`agricultural_fields[${indexOfLiveStock}]['activities'][${zLivestock}].region`}
+                                            name={`agricultural_fields[${indexOfLiveStock}]['activities'][${values.agricultural_fields[
+                                              indexOfLiveStock
+                                            ]["activities"].findIndex(
+                                              (a) => a.activity === activity
+                                            )}].region`}
                                             className="form-select"
                                           >
                                             <option></option>
@@ -533,10 +646,6 @@ const PracticingQuestions = ({
                                   </Row>
                                 </Col>
                               ) : null}
-                              {console.log(
-                                "Incrementing index of livestock activities: ",
-                                (zLivestock += 1)
-                              )}
                             </Row>
                           ))}
                           <hr></hr>
@@ -553,8 +662,15 @@ const PracticingQuestions = ({
                             }
                             return x.field === "Fishing";
                           });
-                    var zFishing = 0;
-                    console.log("Assigned zFishing");
+                    // var zFishing =
+                    //   values.agricultural_fields[indexOfFarming][
+                    //     "activities"
+                    //   ] !== undefined
+                    //     ? values.agricultural_fields[indexOfFishing][
+                    //         "activities"
+                    //       ].length
+                    //     : 0;
+                    // console.log("Assigned zFishing");
 
                     return (
                       <React.Fragment>
@@ -572,13 +688,19 @@ const PracticingQuestions = ({
                             if (typeof msg === "object") {
                               return Object.keys(msg).map((k) => {
                                 if (k === "activities" && msg[k].length > 0) {
-                                  return msg[k].map((kk) => {
-                                    return Object.keys(kk).map((kkk) => {
-                                      return (
-                                        <p className="text-danger">{kk[kkk]}</p>
-                                      );
-                                    });
-                                  });
+                                  return typeof msg[k] === "string" ? (
+                                    <p className="text-danger">{msg[k]}</p>
+                                  ) : (
+                                    msg[k].map((kk) => {
+                                      return Object.keys(kk).map((kkk) => {
+                                        return (
+                                          <p className="text-danger">
+                                            {kk[kkk]}
+                                          </p>
+                                        );
+                                      });
+                                    })
+                                  );
                                 }
                                 return <p className="text-danger">{msg[k]}</p>;
                               });
@@ -648,31 +770,47 @@ const PracticingQuestions = ({
                           {fishingActivities.map((activity) => (
                             <Row>
                               <Col md={5}>
-                                <Form.Group>
-                                  <Field
-                                    key={activity + "dd" + 12}
-                                    value={activity}
-                                    className="form-check-input"
-                                    type="checkbox"
-                                    name={`agricultural_fields[${indexOfFishing}]['activities'][${zFishing}].activity`}
-                                  />
-                                  <Form.Label>{t(activity)}</Form.Label>
-                                </Form.Group>
+                                <FieldArray
+                                  name={`agricultural_fields[${indexOfFishing}]['activities']`}
+                                >
+                                  {({ insert, remove, push }) => (
+                                    <Form.Group>
+                                      <Field
+                                        key={activity + "dd" + 12}
+                                        value={activity}
+                                        className="form-check-input"
+                                        type="checkbox"
+                                        checked={checkedStatus(
+                                          activity,
+                                          indexOfFishing
+                                        )}
+                                        onChange={(e) => {
+                                          handleActivityChange(
+                                            e.target.checked,
+                                            activity,
+                                            e.target.value,
+                                            push,
+                                            remove
+                                          );
+                                        }}
+                                        // name={`agricultural_fields[${indexOfFishing}]['activities'][${zFishing}].activity`}
+                                      />
+                                      <Form.Label>{t(activity)}</Form.Label>
+                                    </Form.Group>
+                                  )}
+                                </FieldArray>
                               </Col>
                               {values.agricultural_fields[indexOfFishing][
                                 "activities"
                               ] &&
                               values.agricultural_fields[indexOfFishing][
                                 "activities"
-                              ][zFishing] &&
-                              values.agricultural_fields[indexOfFishing][
-                                "activities"
-                              ][zFishing].activity[0] ? (
+                              ].find((a) => a.activity === activity) ? (
                                 <Col>
                                   <Row>
                                     {values.agricultural_fields[indexOfFishing][
                                       "activities"
-                                    ][zFishing].activity[0] === "Other" ? (
+                                    ].find((a) => a.activity === "Other") ? (
                                       <Col md={12}>
                                         <Form.Group as={Row}>
                                           <Form.Label column md={2}>
@@ -680,8 +818,12 @@ const PracticingQuestions = ({
                                           </Form.Label>
                                           <Col md={10}>
                                             <Field
-                                              name={`agricultural_fields[${indexOfFishing}]['activities'][${zFishing}].act`}
-                                              className="form-control"
+                                              component={Form.Control}
+                                              name={`agricultural_fields[${indexOfFishing}]['activities'][${values.agricultural_fields[
+                                                indexOfFishing
+                                              ]["activities"].findIndex(
+                                                (a) => a.activity === activity
+                                              )}].act`}
                                             />
                                           </Col>
                                         </Form.Group>
@@ -695,7 +837,11 @@ const PracticingQuestions = ({
                                         <Col md={10}>
                                           <Field
                                             as="select"
-                                            name={`agricultural_fields[${indexOfFishing}]['activities'][${zFishing}].region`}
+                                            name={`agricultural_fields[${indexOfFishing}]['activities'][${values.agricultural_fields[
+                                              indexOfFishing
+                                            ]["activities"].findIndex(
+                                              (a) => a.activity === activity
+                                            )}].region`}
                                             className="form-select"
                                           >
                                             <option></option>
@@ -714,10 +860,6 @@ const PracticingQuestions = ({
                                   </Row>
                                 </Col>
                               ) : null}
-                              {console.log(
-                                "Incrementing index: ",
-                                (zFishing += 1)
-                              )}
                             </Row>
                           ))}
                         </Col>
@@ -779,12 +921,21 @@ const PracticingQuestions = ({
       case "challenges":
         return (
           <Form.Group className="mb-3">
-            <Form.Control
+            {/* <Form.Control
               as="textarea"
+              onFocus={handleFocus}
               onBlur={handleBlur}
+              inputRef={inputRef}
+              key="challenges"
+              onChange={handleChallengeChange}
               name="challenges"
               className="no-outline-textfield form-control-lg"
               placeholder=""
+            /> */}
+            <Field
+              id="challenge-field"
+              name="challenges"
+              component={Form.Control}
             />
           </Form.Group>
         );
@@ -792,7 +943,13 @@ const PracticingQuestions = ({
         return null;
     }
   };
-
+  const handleFocus = useCallback(() => {
+    inputRef.current.focus();
+  }, []);
+  const handleChallengeChange = (e) => {
+    const { name, value } = e.target;
+    inputRef.current.value = value;
+  };
   return (
     <React.Fragment>
       {practicingQuestions.map((question) => (
