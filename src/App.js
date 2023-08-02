@@ -22,7 +22,7 @@ function App() {
 
   return (
     <HelmetProvider>
-      <Helmet titleTemplate="%s | Voting System" defaultTitle="Kilimo Pesa" />
+      <Helmet titleTemplate="%s | Kilimo Pesa" defaultTitle="Kilimo Pesa" />
       <Provider store={store}>
         <ThemeProvider>
           <SidebarProvider>

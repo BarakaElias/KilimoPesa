@@ -1,4 +1,4 @@
-import React, { useRef, useCallback } from "react";
+import React, { useRef, useState, useCallback } from "react";
 import { FieldArray, Field, ErrorMessage } from "formik";
 import { Form, Row, Col, Alert } from "react-bootstrap";
 import useAppSelector from "../../../../hooks/useAppSelector";
@@ -191,18 +191,28 @@ const PracticingQuestions = ({
         };
         const handleActivityChange = (
           isChecked,
+          field,
           activity,
           value,
           push,
           remove
         ) => {
+          const theField = values.agricultural_fields.find(
+            (f) => f.field === field
+          );
+
           if (isChecked) {
             console.log("Adding");
             push({ activity: activity });
           } else {
-            remove({
-              activity: value,
-            });
+            const activityIndex = theField.activities.findIndex(
+              (a) => a.activity === activity
+            );
+            console.log(
+              "HadleActivityChange: ",
+              `${theField} on Index: ${activityIndex}`
+            );
+            remove(activityIndex);
           }
         };
 
@@ -349,6 +359,7 @@ const PracticingQuestions = ({
                                           onChange={(e) => {
                                             handleActivityChange(
                                               e.target.checked,
+                                              "Farming",
                                               activity,
                                               e.target.value,
                                               push,
@@ -375,7 +386,7 @@ const PracticingQuestions = ({
                                         indexOfFarming
                                       ]["activities"].find(
                                         (a) => a.activity === "Other"
-                                      ) ? (
+                                      ) && activity === "Other" ? (
                                         <Col md={12}>
                                           <Form.Group as={Row}>
                                             <Form.Label column md={2}>
@@ -569,6 +580,7 @@ const PracticingQuestions = ({
                                         onChange={(e) => {
                                           handleActivityChange(
                                             e.target.checked,
+                                            "Livestock keeping",
                                             activity,
                                             e.target.value,
                                             push,
@@ -596,7 +608,7 @@ const PracticingQuestions = ({
                                       indexOfLiveStock
                                     ]["activities"].find(
                                       (a) => a.activity === "Other"
-                                    ) ? (
+                                    ) && activity === "Other" ? (
                                       <Col md={12}>
                                         <Form.Group as={Row}>
                                           <Form.Label column md={2}>
@@ -787,6 +799,7 @@ const PracticingQuestions = ({
                                         onChange={(e) => {
                                           handleActivityChange(
                                             e.target.checked,
+                                            "Fishing",
                                             activity,
                                             e.target.value,
                                             push,
@@ -810,7 +823,8 @@ const PracticingQuestions = ({
                                   <Row>
                                     {values.agricultural_fields[indexOfFishing][
                                       "activities"
-                                    ].find((a) => a.activity === "Other") ? (
+                                    ].find((a) => a.activity === "Other") &&
+                                    activity === "Other" ? (
                                       <Col md={12}>
                                         <Form.Group as={Row}>
                                           <Form.Label column md={2}>
@@ -919,6 +933,9 @@ const PracticingQuestions = ({
           </Row>
         );
       case "challenges":
+        const handlleTextChange = (e) => {
+          const the_text = e.target.value;
+        };
         return (
           <Form.Group className="mb-3">
             {/* <Form.Control
@@ -932,24 +949,31 @@ const PracticingQuestions = ({
               className="no-outline-textfield form-control-lg"
               placeholder=""
             /> */}
-            <Field
+            {/* <Field
               id="challenge-field"
               name="challenges"
               component={Form.Control}
+            /> */}
+            <Form.Control
+              type="text"
+              name="challenges"
+              className="no-outline-textfield form-control-lg"
+              placeholder=""
+              isInvalid={Boolean(touched.challenges && errors.challenges)}
+              onBlur={handleBlur}
             />
+            {!!touched.challenges && (
+              <Form.Control.Feedback type="invalid">
+                {errors.challenges}
+              </Form.Control.Feedback>
+            )}
           </Form.Group>
         );
       default:
         return null;
     }
   };
-  const handleFocus = useCallback(() => {
-    inputRef.current.focus();
-  }, []);
-  const handleChallengeChange = (e) => {
-    const { name, value } = e.target;
-    inputRef.current.value = value;
-  };
+
   return (
     <React.Fragment>
       {practicingQuestions.map((question) => (

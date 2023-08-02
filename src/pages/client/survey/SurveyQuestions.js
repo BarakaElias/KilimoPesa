@@ -217,18 +217,28 @@ const SurveyQuestions = ({
         };
         const handleActivityChange = (
           isChecked,
+          field,
           activity,
           value,
           push,
           remove
         ) => {
+          const theField = values.agricultural_fields.find(
+            (f) => f.field === field
+          );
+
           if (isChecked) {
             console.log("Adding");
             push({ activity: activity });
           } else {
-            remove({
-              activity: value,
-            });
+            const activityIndex = theField.activities.findIndex(
+              (a) => a.activity === activity
+            );
+            console.log(
+              "HadleActivityChange: ",
+              `${theField} on Index: ${activityIndex}`
+            );
+            remove(activityIndex);
           }
         };
         return (
@@ -366,6 +376,7 @@ const SurveyQuestions = ({
                                         onChange={(e) => {
                                           handleActivityChange(
                                             e.target.checked,
+                                            "Farming",
                                             activity,
                                             e.target.value,
                                             push,
@@ -395,7 +406,8 @@ const SurveyQuestions = ({
                                   <Row>
                                     {values.agricultural_fields[indexOfFarming][
                                       "activities"
-                                    ].find((a) => a.activity === "Other") ? (
+                                    ].find((a) => a.activity === "Other") &&
+                                    activity === "Other" ? (
                                       <Col md={12}>
                                         <Form.Group as={Row}>
                                           <Form.Label column md={2}>
@@ -590,6 +602,7 @@ const SurveyQuestions = ({
                                         onChange={(e) => {
                                           handleActivityChange(
                                             e.target.checked,
+                                            "Livestock keeping",
                                             activity,
                                             e.target.value,
                                             push,
@@ -616,7 +629,7 @@ const SurveyQuestions = ({
                                       indexOfLiveStock
                                     ]["activities"].find(
                                       (a) => a.activity === "Other"
-                                    ) ? (
+                                    ) && activity === "Other" ? (
                                       <Col md={12}>
                                         <Form.Group as={Row}>
                                           <Form.Label column md={2}>
@@ -801,6 +814,7 @@ const SurveyQuestions = ({
                                         onChange={(e) => {
                                           handleActivityChange(
                                             e.target.checked,
+                                            "Fishing",
                                             activity,
                                             e.target.value,
                                             push,
@@ -826,7 +840,8 @@ const SurveyQuestions = ({
                                   <Row>
                                     {values.agricultural_fields[indexOfFishing][
                                       "activities"
-                                    ].find((a) => a.activity === "Other") ? (
+                                    ].find((a) => a.activity === "Other") &&
+                                    activity === "Other" ? (
                                       <Col md={12}>
                                         <Form.Group as={Row}>
                                           <Form.Label column md={2}>
@@ -979,7 +994,22 @@ const SurveyQuestions = ({
       case "challenges":
         return (
           <Form.Group className="mb-3">
-            <Field name="challenges" component={Form.Control} />
+            {/* <Field name="challenges" component={Form.Control} /> */}
+            <Form.Control
+              type="text"
+              name="challenges"
+              defaultValue={currentValues.email}
+              className="no-outline-textfield form-control-lg"
+              placeholder=""
+              isInvalid={Boolean(touched.email && errors.email)}
+              onBlur={handleBlur}
+              onChange={handleChange}
+            />
+            {!!touched.challenges && (
+              <Form.Control.Feedback type="invalid">
+                {errors.challenges}
+              </Form.Control.Feedback>
+            )}
           </Form.Group>
         );
       default:
