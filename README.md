@@ -1,6 +1,13 @@
-# Getting Started with Create React App
+# KilimoPesa Multistep Survey Form and Analytics Dashboard
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+KilimoPesa is an innovative project centered around agriculture, featuring a user-friendly multistep survey form and an analytics dashboard. Developed using React.js, the platform allows participants from diverse agricultural fields to contribute valuable insights through the survey. 
+
+## Features
+** 1. Multistep Form: **The KilimoPesa project offers a user-friendly multistep survey form that guides participants through a seamless data collection process. As users progress through the form, their responses are saved in the application's state, ensuring that the form information is retained even if users navigate back and forth between steps. 
+
+**2. Analytics Dashboard: **KilimoPesa includes a robust analytics dashboard accessible to administrators. The dashboard provides a comprehensive visual representation of the survey data collected from participants in the agriculture field. 
+
+**3. Responsive Design: ** The KilimoPesa project is designed with a responsive layout, making it accessible and usable across various devices, including desktops, tablets, and mobile phones. 
 
 ## Available Scripts
 
